@@ -1,0 +1,11 @@
+{
+  "name": "pi-copy-pasta",
+  "version": "0.1.0",
+  "description": "Copy-paste retrieval by ID: inline '/cp N to copy' hint above every assistant/thinking code block + /cp [id] console command; optional core patch (patch-001 v3) makes whole blocks click-to-copy.",
+  "type": "module",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
