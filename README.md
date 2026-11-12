@@ -71,8 +71,8 @@ git clone <your-gitea>/pi-copy-pasta <your-pi-workspace>/extensions/pi-copy-past
 Restart pi. The `/cp` command and the hint lines appear as soon as the
 extension loads (no patch required for that).
 
-**Requirements:** pi **1.5.0** (bundled build — the extension imports
-`copyToClipboard` from pi's own package). Clipboard is whatever pi's own
+**Requirements:** pi **1.5.0 or 1.5.1** (bundled build — the extension
+imports `copyToClipboard` from pi's own package). Clipboard is whatever pi's own
 `copyToClipboard` uses (measured in the 1.5.0 package): on Linux
 `wl-copy` under Wayland, `xclip`/`xsel` under X11, with an OSC 52 fallback
 for remote sessions; macOS/Windows use their native paths. If your terminal
@@ -84,6 +84,7 @@ fail — `/cp` still prints the char count in the toast.
 | pi version | status |
 |---|---|
 | **1.5.0** | supported — live-tested on a real install 2026-11-05 (v1 round 5, v2 round 6, v3 round 7); the current v3 (3-arg hook) final live TUI re-test is recorded as pending in the dev findings as of 2026-11-06 |
+| **1.5.1** | supported — live-verified on a real install 2026-11-10 (applied via `--auto` on the 1.5.1 install; clicking code snippets in reasoning blocks copies to the clipboard); also VM-verified against the captured 1.5.1 bundle: extension loads cleanly through the real loader with the hook registered (probe-verified), and the core patch applies out of the box (anchor found, full apply/check/boot/rollback cycle) |
 | 1.4.0 / 1.3.0 | **not supported by design** (decision 2026-11-06): the id model keys on `messageId`, which only exists in 1.5.0's transform context and message component; the core patch is also 1.5.0-only as shipped. Portability was evaluated (one shared patch anchor set would cover 1.3.0/1.4.0, plus a degraded "soft id" mode for the extension) — see the development findings, round 8 (`pi-agent/development/copy-pasta/` in the Qube workspace, not in this repo). |
 | 0.87.x | not supported |
 
@@ -92,7 +93,8 @@ fail — `/cp` still prints the char count in the toast.
 The `patch/` subfolder of this package (v3) — thin click forwarder: wraps
 each code block in a mouse region, forwards clicks to this extension's
 shared copy function. **No-op when this extension is not loaded** (renders
-exactly stock pi). **1.5.0 only** (anchor-based on the 1.5.0 bundle).
+exactly stock pi). **1.5.0 / 1.5.1** (anchor-based; verified to apply
+out of the box on both bundles).
 Self-contained: the apply script reads its anchors/blocks from its own
 directory, so it works from any clone of this repo. See `patch/README.md`
 for what to look for and how to apply/roll back (`--auto`, `--check`,
@@ -101,4 +103,5 @@ for what to look for and how to apply/roll back (`--auto`, `--check`,
 ## Built for
 
 pi **1.5.0** — developed and live-verified on a Wayland session (v1/v2
-rounds 5–6, 2026-11-05; copies via pi's own `copyToClipboard` → `wl-copy`).
+rounds 5–6, 2026-11-05; copies via pi's own `copyToClipboard` → `wl-copy`);
+**1.5.1** — patch + extension live-verified on a real install 2026-11-10.
