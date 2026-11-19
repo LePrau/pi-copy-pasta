@@ -267,13 +267,11 @@ export function cpDetectPatchState(pkgDir: string, pristineAnchor: string): CpPa
 /**
  * Session-start notice text, or undefined when no notice is warranted:
  * "v3" = patch present (silent); undefined = not detectable (silent — no
- * false alarms). The message carries the exact apply command for the
- * resolved package (works on every OS — no `which`/`readlink` needed).
+ * false alarms). Short toast-style wording (Paul, 2026-11-19); the exact
+ * apply command lives in the READMEs (patch/README.md "How to apply").
  */
-export function cpPatchNotice(state: CpPatchState | undefined, patchScript: string, pkgDir?: string): string | undefined {
+export function cpPatchNotice(state: CpPatchState | undefined): string | undefined {
 	if (state === undefined || state === "v3") return undefined;
-	const cmd = pkgDir ? `node ${patchScript} --pi-dir ${pkgDir}` : `node ${patchScript} --auto`;
-	if (state === "pristine")
-		return `pi-copy-pasta: the click-copy patch is NOT applied — /cp still works, but click-to-copy needs the core patch: ${cmd}`;
-	return `pi-copy-pasta: the core patch is at ${state} (older generation) — re-apply to upgrade it to v3: ${cmd}`;
+	if (state === "pristine") return "Copy-Pasta: Apply the patch to enable click+copy!";
+	return `Copy-Pasta: Re-apply the patch to enable click+copy (current: ${state})!`;
 }

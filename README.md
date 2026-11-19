@@ -106,14 +106,13 @@ On every `session_start` (startup, `/new`, `/resume`, `/fork`, reload) the
 extension scans the installed pi bundle **read-only** for the core patch's
 state — the same chunk markers and priority order as the apply script's
 `--check` (`pristine` / `v1` / `v2` / `v3a` / `v3`). If click-to-copy is not
-fully available, a warning toast shows the exact apply command for the
-resolved package:
+fully available, a short warning toast tells the user to (re-)apply it — the
+exact apply command is in `patch/README.md`:
 
-- **not applied** (`pristine`): `… the click-copy patch is NOT applied —
-  /cp still works, but click-to-copy needs the core patch: node
-  <…>/patch/apply-inline-copy.mjs --pi-dir <package-dir>`
-- **older generation** (`v1` / `v2` / `v3a`): `… the core patch is at vX
-  (older generation) — re-apply to upgrade it to v3: …`
+- **not applied** (`pristine`): `Copy-Pasta: Apply the patch to enable
+  click+copy!`
+- **older generation** (`v1` / `v2` / `v3a`): `Copy-Pasta: Re-apply the
+  patch to enable click+copy (current: vX)!`
 - **`v3` applied, or state undetectable**: silent (no false alarms).
 
 Detection runs in-process (no `which`/`readlink` subprocesses — works on

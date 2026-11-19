@@ -19,8 +19,9 @@
  * Session-start notice: on every session_start (startup, /new, /resume,
  * /fork, reload) the extension read-only scans the installed pi bundle for
  * the patch state (same markers as the apply script's --check); if the patch
- * is missing or an older generation it notifies with the exact apply
- * command. Silent when v3 is applied or the state cannot be determined.
+ * is missing or an older generation it shows a short toast telling the user
+ * to (re-)apply it (the exact command lives in patch/README.md). Silent when
+ * v3 is applied or the state cannot be determined.
  *
  * Clipboard: pi's own copyToClipboard (Wayland wl-copy). No widget — the
  * PoC widget stays in pi-agent/development/copy-pasta/poc-001.
@@ -83,11 +84,7 @@ export default function piCopyPasta(api: ExtensionAPI): void {
 			} catch {
 				/* detection failed — stay silent (no false alarms) */
 			}
-			const msg = cpPatchNotice(
-				state,
-				fileURLToPath(new URL("./patch/apply-inline-copy.mjs", import.meta.url)),
-				pkgDir,
-			);
+			const msg = cpPatchNotice(state);
 			if (msg) ctx.ui.notify(msg, "warning");
 		}, 0);
 	});
