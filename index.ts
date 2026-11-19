@@ -16,13 +16,30 @@
  * globalThis.__cpPasta hook; without the patch (or with this extension not
  * loaded) pi behaves exactly stock.
  *
+ * Session-start notice: on every session_start (startup, /new, /resume,
+ * /fork, reload) the extension read-only scans the installed pi bundle for
+ * the patch state (same markers as the apply script's --check); if the patch
+ * is missing or an older generation it notifies with the exact apply
+ * command. Silent when v3 is applied or the state cannot be determined.
+ *
  * Clipboard: pi's own copyToClipboard (Wayland wl-copy). No widget — the
  * PoC widget stays in pi-agent/development/copy-pasta/poc-001.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { copyToClipboard } from "@earendil-works/pi-coding-agent";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { cpDoCopy, cpIdOf, cpNewState, cpTransform } from "./lib.ts";
+import {
+	cpDetectPatchState,
+	cpDoCopy,
+	cpFindPiPackage,
+	cpIdOf,
+	cpNewState,
+	cpPatchNotice,
+	cpTransform,
+	type CpPatchState,
+} from "./lib.ts";
 
 export default function piCopyPasta(api: ExtensionAPI): void {
 	const st = cpNewState();
@@ -42,6 +59,37 @@ export default function piCopyPasta(api: ExtensionAPI): void {
 			const r = cpDoCopy(st, id, copyToClipboard);
 			if (ctx.hasUI) ctx.ui.notify(r ? `/cp ${id}: copied ${r.chars} chars` : `copy failed for /cp ${id}`, r ? "info" : "error");
 		},
+	});
+
+	// Session-start notice (every startup / new / resume / fork / reload):
+	// tell the user to apply (or re-apply) the core patch if click-to-copy is
+	// not (fully) available. Detection is a read-only scan of the installed
+	// pi bundle — deferred with setTimeout(0) so it never blocks startup, and
+	// silent when v3 is applied or the state cannot be determined.
+	api.on("session_start", (_event, ctx) => {
+		if (!ctx.hasUI) return;
+		setTimeout(() => {
+			let state: CpPatchState | undefined;
+			let pkgDir: string | undefined;
+			try {
+				pkgDir = cpFindPiPackage();
+				if (pkgDir) {
+					const anchor = readFileSync(
+						fileURLToPath(new URL("./patch/old-anchor-v2.txt", import.meta.url)),
+						"utf8",
+					).replace(/\n$/, "");
+					state = cpDetectPatchState(pkgDir, anchor);
+				}
+			} catch {
+				/* detection failed — stay silent (no false alarms) */
+			}
+			const msg = cpPatchNotice(
+				state,
+				fileURLToPath(new URL("./patch/apply-inline-copy.mjs", import.meta.url)),
+				pkgDir,
+			);
+			if (msg) ctx.ui.notify(msg, "warning");
+		}, 0);
 	});
 
 	// Hook for the core patch's click path (patch-001 v3). The patch calls

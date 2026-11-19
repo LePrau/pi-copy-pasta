@@ -47,11 +47,11 @@ hint flips `✓ copied` for ~1.5 s.
 - `index.ts` — pi wiring: markdown transformer, `/cp` command,
   `globalThis.__cpPasta` hook for the core patch
   (`copyRef(messageId, messageType, ordinal)`, `copyId`, `clearFlip`,
-  `lastId`).
-- `lib.ts` — pure logic (segmenter, transform, id registry, copy) — no pi
-  imports, testable in plain node (unit harness:
-  `pi-agent/development/copy-pasta/lib-test.mjs` in the Qube workspace —
-  not in this repo).
+  `lastId`), and the session-start patch-state notice (see below).
+- `lib.ts` — pure logic (segmenter, transform, id registry, copy, and the
+  read-only core-patch state detection) — no pi imports, testable in plain
+  node (unit harness: `pi-agent/development/copy-pasta/lib-test.mjs` in the
+  Qube workspace — not in this repo).
 - `package.json` — extension manifest.
 - `patch/` — the optional core patch (apply script + anchors/blocks + own
   README — see "Optional core patch" below).
@@ -99,6 +99,28 @@ Self-contained: the apply script reads its anchors/blocks from its own
 directory, so it works from any clone of this repo. See `patch/README.md`
 for what to look for and how to apply/roll back (`--auto`, `--check`,
 `--rollback`, `.bak` restore).
+
+## Startup notice (patch-state detection)
+
+On every `session_start` (startup, `/new`, `/resume`, `/fork`, reload) the
+extension scans the installed pi bundle **read-only** for the core patch's
+state — the same chunk markers and priority order as the apply script's
+`--check` (`pristine` / `v1` / `v2` / `v3a` / `v3`). If click-to-copy is not
+fully available, a warning toast shows the exact apply command for the
+resolved package:
+
+- **not applied** (`pristine`): `… the click-copy patch is NOT applied —
+  /cp still works, but click-to-copy needs the core patch: node
+  <…>/patch/apply-inline-copy.mjs --pi-dir <package-dir>`
+- **older generation** (`v1` / `v2` / `v3a`): `… the core patch is at vX
+  (older generation) — re-apply to upgrade it to v3: …`
+- **`v3` applied, or state undetectable**: silent (no false alarms).
+
+Detection runs in-process (no `which`/`readlink` subprocesses — works on
+Windows installs too) and resolves the running pi package the same way the
+apply script's `--auto` does (bundled `cli.js`, wrapper scripts, managed
+installs). The scan is deferred (`setTimeout(0)`) so it never blocks
+startup, and runs once per session start/resume.
 
 ## Built for
 
