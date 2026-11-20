@@ -1,4 +1,4 @@
-# patch/ — core patch for pi 1.5.0 (v3)
+# patch/ — core patch for pi 1.5.0–1.5.2 (v3)
 
 Makes every fenced code block in assistant messages — in **text parts and
 inside expanded thinking blocks** — a **click-to-copy** target in fullscreen
@@ -18,10 +18,18 @@ segment in a mouse region and forwards the click to the extension's
   block renders exactly like stock pi (byte-identical stock fallback
   branch), thinking clicks still toggle.
 
-**Built for pi-coding-agent 1.5.0 bundled installs only** (anchor-based on
-the 1.5.0 minified bundle). 1.3.0/1.4.0 were evaluated and deliberately
-not shipped (decision 2026-11-06). If the anchor is not found the script
-aborts cleanly — that is the version-mismatch signal.
+**Built for pi-coding-agent 1.5.0 / 1.5.1 / 1.5.2 bundled installs**
+(anchor-based on the minified bundle; the fresh-apply anchor matches
+verbatim on all three). 1.3.0/1.4.0 were evaluated and deliberately not
+shipped (decision 2026-11-06). If the anchor is not found the script aborts
+cleanly — that is the version-mismatch signal.
+
+**Session-start notice (2026-11-19):** the extension now detects this
+patch's state on every `session_start` (in-process, read-only — the same
+markers as `--check`) and warns "Copy-Pasta: Apply the patch to enable
+click+copy!" (or the re-apply variant) when it is missing or an older
+generation — silent when v3 is applied or the state cannot be determined.
+See the main README, "Startup notice (patch-state detection)".
 
 ## What to look for
 
@@ -72,7 +80,7 @@ node apply-inline-copy.mjs --pi-dir <dir> --rollback  # restore from .bak
 
 | state    | marker | what it is |
 |---|---|---|
-| pristine | unpatched anchor (`old-anchor-v2.txt`) | stock pi 1.5.0 |
+| pristine | unpatched anchor (`old-anchor-v2.txt`) | stock pi (unpatched) |
 | v1       | `COPY_PASTA_CLIPBIN` | text-part labels only (superseded) |
 | v2       | `cpCopied` | text + thinking labels, sync flip (superseded) |
 | v3a      | `copyRef`, 2-arg call | old thin click forwarder (superseded) |
@@ -108,11 +116,15 @@ apply → `node --check` on the chunk → bundle boots (`--version` → 1.5.0) �
 `--check` → `--rollback` → byte-identical to the pre-apply state; the v3
 chunk is byte-identical across all upgrade paths. Live-tested on a real
 install (rounds 5–7, 2026-11-05, incl. the per-part id fix and the
-renderer-matching fence-indent rule). This copy of the apply script
-differs from the verified dev build by exactly one line: companion-file
-resolution uses `fileURLToPath(import.meta.url)` instead of
-`new URL(import.meta.url).pathname` (robust to spaces/non-ASCII in paths
-and to drive letters); the anchor/block files are byte-identical copies.
+renderer-matching fence-indent rule). Verified in a VM against a pristine
+pi 1.5.2 bundle capture (2026-11-19): the fresh-apply anchor matches
+verbatim; full apply → `node --check` → boot (`--version` → 1.5.2) →
+`--check` → `--rollback` cycle, rollback byte-identical to pristine. This
+copy of the apply script differs from the verified dev build by exactly
+one line: companion-file resolution uses `fileURLToPath(import.meta.url)`
+instead of `new URL(import.meta.url).pathname` (robust to
+spaces/non-ASCII in paths and to drive letters); the anchor/block files
+are byte-identical copies.
 
 Development documentation (root cause, API surface, test rounds):
 `pi-agent/development/copy-pasta/` in the Qube workspace.
